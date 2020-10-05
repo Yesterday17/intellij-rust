@@ -30,6 +30,7 @@ import org.rust.cargo.toolchain.tools.cargoOrWrapper
 import org.rust.cargo.toolchain.tools.rustc
 import org.rust.cargo.util.DownloadResult
 import org.rust.ide.notifications.showBalloon
+import org.rust.ide.sdk.explicitPathToStdlib
 import org.rust.openapiext.TaskResult
 import java.util.concurrent.CompletableFuture
 
@@ -98,7 +99,7 @@ private fun fetchRustcInfo(
         return TaskResult.Err("Invalid Rust toolchain ${context.toolchain.presentableLocation}")
     }
 
-    val sysroot = context.toolchain.rustc().getSysroot(context.oldCargoProject.workingDirectory)
+    val sysroot = context.toolchain.rustc().getSysroot()
         ?: return TaskResult.Err("failed to get project sysroot")
 
     val rustcVersion = context.toolchain.rustc().queryVersion()
@@ -137,7 +138,7 @@ private fun fetchCargoWorkspace(
         // Running "cargo rustc --bin=projectname  -- --print cfg" we can get around this
         // but it also compiles the whole project, which is probably not wanted
         // TODO: This does not query the target specific cfg flags during cross compilation :-(
-        val rawCfgOptions = toolchain.rustc().getCfgOptions(projectDirectory) ?: emptyList()
+        val rawCfgOptions = toolchain.rustc().getCfgOptions() ?: emptyList()
         val cfgOptions = CfgOptions.parse(rawCfgOptions)
         val ws = CargoWorkspace.deserialize(manifestPath, projectDescriptionData, cfgOptions)
         TaskResult.Ok(ws)
@@ -164,10 +165,10 @@ private fun fetchStdlib(
         }
     }
 
-    val rustup = context.toolchain.rustup(workingDirectory)
+    val rustup = context.toolchain.rustup()
     if (rustup == null) {
-        val explicitPath = context.project.rustSettings.explicitPathToStdlib
-            ?: context.toolchain.rustc().getStdlibFromSysroot(workingDirectory)?.path
+        val explicitPath = context.project.rustSettings.sdk?.explicitPathToStdlib
+            ?: context.toolchain.rustc().getStdlibFromSysroot()?.path
         val lib = explicitPath?.let { StandardLibrary.fromPath(it) }
         return when {
             explicitPath == null -> TaskResult.Err("no explicit stdlib or rustup found")

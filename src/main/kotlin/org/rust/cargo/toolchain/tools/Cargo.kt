@@ -36,12 +36,15 @@ import org.rust.cargo.project.workspace.CargoWorkspaceData
 import org.rust.cargo.project.workspace.PackageId
 import org.rust.cargo.runconfig.buildtool.CargoPatch
 import org.rust.cargo.runconfig.command.CargoCommandConfiguration.Companion.findCargoProject
-import org.rust.cargo.toolchain.*
+import org.rust.cargo.toolchain.BacktraceMode
+import org.rust.cargo.toolchain.ExternalLinter
+import org.rust.cargo.toolchain.RsToolchain
 import org.rust.cargo.toolchain.Rustup.Companion.checkNeedInstallClippy
 import org.rust.cargo.toolchain.impl.BuildScriptMessage
 import org.rust.cargo.toolchain.impl.BuildScriptsInfo
 import org.rust.cargo.toolchain.impl.CargoBuildPlan
 import org.rust.cargo.toolchain.impl.CargoMetadata
+import org.rust.cargo.toolchain.withProxyIfNeeded
 import org.rust.ide.actions.InstallBinaryCrateAction
 import org.rust.ide.experiments.RsExperiments
 import org.rust.ide.notifications.showBalloon
@@ -70,7 +73,7 @@ fun RsToolchain.cargoOrWrapper(cargoProjectDirectory: Path?): Cargo {
  * It is impossible to guarantee that paths to the project or executables are valid,
  * because the user can always just `rm ~/.cargo/bin -rf`.
  */
-class Cargo(toolchain: RsToolchain, useWrapper: Boolean = false) {
+class Cargo(private val toolchain: RsToolchain, useWrapper: Boolean = false) {
     private val executable: Path = toolchain.pathToExecutable(if (useWrapper) WRAPPER_NAME else NAME)
     private val rustcExecutable: Path = toolchain.pathToExecutable(Rustc.NAME)
 
@@ -86,6 +89,7 @@ class Cargo(toolchain: RsToolchain, useWrapper: Boolean = false) {
 
     fun listInstalledBinaryCrates(): List<BinaryCrate> =
         GeneralCommandLine(executable)
+            .apply { if (toolchain.name != null) withParameters("+${toolchain.name}") }
             .withParameters("install", "--list")
             .execute()
             ?.stdoutLines
@@ -101,6 +105,7 @@ class Cargo(toolchain: RsToolchain, useWrapper: Boolean = false) {
 
     fun checkSupportForBuildCheckAllTargets(): Boolean {
         val lines = GeneralCommandLine(executable)
+            .apply { if (toolchain.name != null) withParameters("+${toolchain.name}") }
             .withParameters("help", "check")
             .execute()
             ?.stdoutLines
@@ -317,7 +322,7 @@ class Cargo(toolchain: RsToolchain, useWrapper: Boolean = false) {
         }
 
         val useClippy = settings.externalLinter == ExternalLinter.CLIPPY
-            && !checkNeedInstallClippy(project, cargoProjectDirectory)
+            && !checkNeedInstallClippy(project)
         val checkCommand = if (useClippy) "clippy" else "check"
         return CargoCommandLine(checkCommand, cargoProjectDirectory, arguments)
             .execute(project, owner, ignoreExitCode = true)
@@ -332,8 +337,8 @@ class Cargo(toolchain: RsToolchain, useWrapper: Boolean = false) {
     private fun toGeneralCommandLine(project: Project, commandLine: CargoCommandLine, colors: Boolean): GeneralCommandLine =
         with(patchArgs(commandLine, colors)) {
             val parameters = buildList<String> {
-                if (channel != RustChannel.DEFAULT) {
-                    add("+$channel")
+                if (toolchain.name != null) {
+                    add("+${toolchain.name}")
                 }
                 if (project.rustSettings.useOffline) {
                     val cargoProject = findCargoProject(project, additionalArguments, workingDirectory)
@@ -369,6 +374,7 @@ class Cargo(toolchain: RsToolchain, useWrapper: Boolean = false) {
 
     fun installCargoGenerate(owner: Disposable, listener: ProcessListener) {
         GeneralCommandLine(executable)
+            .apply { if (toolchain.name != null) withParameters("+${toolchain.name}") }
             .withParameters(listOf("install", "cargo-generate"))
             .execute(owner, listener = listener)
     }

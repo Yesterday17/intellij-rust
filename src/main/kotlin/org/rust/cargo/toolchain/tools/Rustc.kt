@@ -12,12 +12,15 @@ import com.intellij.openapiext.isUnitTestMode
 import org.rust.cargo.toolchain.RsToolchain
 import org.rust.cargo.toolchain.impl.RustcVersion
 import org.rust.cargo.toolchain.impl.parseRustcVersion
-import org.rust.openapiext.*
+import org.rust.openapiext.GeneralCommandLine
+import org.rust.openapiext.checkIsBackgroundThread
+import org.rust.openapiext.execute
+import org.rust.openapiext.isSuccess
 import java.nio.file.Path
 
 fun RsToolchain.rustc(): Rustc = Rustc(this)
 
-class Rustc(toolchain: RsToolchain) {
+class Rustc(private val toolchain: RsToolchain) {
     private val executable: Path = toolchain.pathToExecutable(NAME)
 
     fun queryVersion(): RustcVersion? {
@@ -25,37 +28,38 @@ class Rustc(toolchain: RsToolchain) {
             checkIsBackgroundThread()
         }
         val lines = GeneralCommandLine(executable)
+            .apply { if (toolchain.name != null) withParameters("+${toolchain.name}") }
             .withParameters("--version", "--verbose")
             .execute()
             ?.stdoutLines
         return lines?.let { parseRustcVersion(it) }
     }
 
-    fun getSysroot(projectDirectory: Path): String? {
+    fun getSysroot(): String? {
         if (!isUnitTestMode) {
             checkIsBackgroundThread()
         }
         val timeoutMs = 10000
         val output = GeneralCommandLine(executable)
-            .withCharset(Charsets.UTF_8)
-            .withWorkDirectory(projectDirectory)
+            .apply { if (toolchain.name != null) withParameters("+${toolchain.name}") }
             .withParameters("--print", "sysroot")
+            .withCharset(Charsets.UTF_8)
             .execute(timeoutMs)
         return if (output?.isSuccess == true) output.stdout.trim() else null
     }
 
-    fun getStdlibFromSysroot(projectDirectory: Path): VirtualFile? {
-        val sysroot = getSysroot(projectDirectory) ?: return null
+    fun getStdlibFromSysroot(): VirtualFile? {
+        val sysroot = getSysroot() ?: return null
         val fs = LocalFileSystem.getInstance()
         return fs.refreshAndFindFileByPath(FileUtil.join(sysroot, "lib/rustlib/src/rust"))
     }
 
-    fun getCfgOptions(projectDirectory: Path): List<String>? {
+    fun getCfgOptions(): List<String>? {
         val timeoutMs = 10000
         val output = GeneralCommandLine(executable)
-            .withCharset(Charsets.UTF_8)
-            .withWorkDirectory(projectDirectory)
+            .apply { if (toolchain.name != null) withParameters("+${toolchain.name}") }
             .withParameters("--print", "cfg")
+            .withCharset(Charsets.UTF_8)
             .execute(timeoutMs)
         return if (output?.isSuccess == true) output.stdoutLines else null
     }
