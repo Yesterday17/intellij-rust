@@ -35,6 +35,7 @@ import org.rust.cargo.runconfig.buildtool.CargoBuildManager.isBuildConfiguration
 import org.rust.cargo.runconfig.buildtool.CargoPatch
 import org.rust.cargo.runconfig.buildtool.cargoPatches
 import org.rust.cargo.runconfig.command.CargoCommandConfiguration
+import org.rust.cargo.toolchain.RsToolchain
 import org.rust.cargo.toolchain.RustChannel
 import org.rust.cargo.toolchain.tools.Cargo.Companion.checkNeedInstallGrcov
 import org.rust.cargo.toolchain.tools.grcov
@@ -60,7 +61,7 @@ class GrcovRunner : RsDefaultProgramRunnerBase() {
         val project = environment.project
         if (checkNeedInstallGrcov(project)) return
         val state = environment.state as CargoRunStateBase
-        if (!checkIsNightlyToolchain(project, state.config)) return
+        if (!checkIsNightlyToolchain(project, state.toolchain)) return
         val workingDirectory = state.commandLine.workingDirectory.toFile()
         cleanOldCoverageData(workingDirectory)
         environment.cargoPatches += cargoCoveragePatch
@@ -137,12 +138,9 @@ class GrcovRunner : RsDefaultProgramRunnerBase() {
             }
         }
 
-        private fun checkIsNightlyToolchain(project: Project, config: CargoCommandConfiguration.CleanConfiguration.Ok): Boolean {
-            var channel: RustChannel? = config.cmd.channel
-            if (channel == RustChannel.DEFAULT) {
-                channel = project.computeWithCancelableProgress("Fetching rustc version...") {
-                    config.toolchain.rustc().queryVersion()?.channel
-                }
+        private fun checkIsNightlyToolchain(project: Project, toolchain: RsToolchain): Boolean {
+            val channel = project.computeWithCancelableProgress("Fetching rustc version...") {
+                toolchain.rustc().queryVersion()?.channel
             }
             if (channel == RustChannel.NIGHTLY) return true
 
