@@ -14,9 +14,22 @@ FILE
     <empty list>
   PsiWhiteSpace(' ')
   PsiElement(identifier)('F')
-  PsiErrorElement:'!' or '::' expected, got '}'
-    <empty list>
   PsiWhiteSpace(' ')
   PsiComment(<EOL_COMMENT>)('// Enum variants are always implicitly public, and `pub` keyword is forbidden here')
   PsiWhiteSpace('\n')
-  PsiElement(})('}')
+  PsiErrorElement:'!' or '::' expected, got '}'
+    PsiElement(})('}')
+  PsiWhiteSpace('\n\n')
+  RsFunctionImpl(FUNCTION)
+    PsiElement(fn)('fn')
+    PsiWhiteSpace(' ')
+    PsiElement(identifier)('foo')
+    RsValueParameterListImpl(VALUE_PARAMETER_LIST)
+      PsiElement(()('(')
+      PsiElement())(')')
+    PsiWhiteSpace(' ')
+    RsBlockImpl(BLOCK)
+      PsiElement({)('{')
+      PsiElement(})('}')
+  PsiWhiteSpace(' ')
+  PsiComment(<EOL_COMMENT>)('// Must be parsed correctly')
