@@ -15,3 +15,5 @@ fn bar(, b: i32) {}
 
 fn foo( {}
 fn foo( ;
+
+fn foo(...,,) {}
