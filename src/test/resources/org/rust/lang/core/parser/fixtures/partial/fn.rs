@@ -12,3 +12,6 @@ unsafe const fn b() -> () { () }
 
 fn foo(a: &, b: i32) {}
 fn bar(, b: i32) {}
+
+fn foo( {}
+fn foo( ;
