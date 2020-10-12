@@ -12,9 +12,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryValue
 import com.intellij.openapi.util.registry.RegistryValueListener
-import com.intellij.psi.stubs.*
+import com.intellij.psi.stubs.SerializationManagerEx
+import com.intellij.psi.stubs.SerializedStubTree
+import com.intellij.psi.stubs.StubForwardIndexExternalizer
+import com.intellij.psi.stubs.StubTreeBuilder
+import com.intellij.testFramework.ReadOnlyLightVirtualFile
 import com.intellij.util.indexing.FileContent
+import com.intellij.util.indexing.FileContentImpl
 import com.intellij.util.io.*
+import org.rust.lang.RsLanguage
 import org.rust.lang.core.macros.MacroExpansionSharedCache.Companion.CACHE_ENABLED
 import org.rust.lang.core.psi.RsMacro
 import org.rust.lang.core.psi.RsMacroCall
@@ -153,6 +159,21 @@ class MacroExpansionSharedCache : Disposable {
             val stub = StubTreeBuilder.buildStubTree(fileContent() ?: return@getOrPut null) ?: return@getOrPut null
             SerializedStubTree.serializeStub(stub, sm, ex)
         }
+    }
+
+    fun createExpansionStub(
+        project: Project,
+        expander: MacroExpander,
+        def: RsMacroDataWithHash,
+        call: RsMacroCallDataWithHash
+    ): Pair<RsFileStub, ExpansionResult>? {
+        val hash = HashCode.mix(def.bodyHash ?: return null, call.bodyHash ?: return null)
+        val result = cachedExpand(expander, def.data, call.data, hash) ?: return null
+        val file = ReadOnlyLightVirtualFile("macro.rs", RsLanguage, result.text)
+        val stub = cachedBuildStub(hash) {
+            FileContentImpl(file, result.text, file.modificationStamp).also { it.project = project }
+        } ?: return null
+        return Pair(stub.stub as RsFileStub, result)
     }
 
     companion object {

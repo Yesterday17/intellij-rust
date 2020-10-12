@@ -52,6 +52,8 @@ import org.rust.lang.core.psi.*
 import org.rust.lang.core.psi.RsPsiTreeChangeEvent.*
 import org.rust.lang.core.psi.ext.*
 import org.rust.lang.core.resolve.indexes.RsMacroCallIndex
+import org.rust.lang.core.resolve2.defMapService
+import org.rust.lang.core.resolve2.isNewResolveEnabled
 import org.rust.openapiext.*
 import org.rust.stdext.*
 import org.rust.taskQueue
@@ -749,7 +751,10 @@ private class MacroExpansionServiceImplInner(
 
         override fun handleEvent(event: RsPsiTreeChangeEvent) {
             if (!isExpansionModeNew) return
-            val file = event.file as? RsFile ?: return
+            val file = event.file as? RsFile ?: run {
+                handleEventWithoutFile(event)
+                return
+            }
             if (RsPsiManager.isIgnorePsiEvents(file)) return
             val virtualFile = file.virtualFile ?: return
             if (virtualFile !is VirtualFileWithId) return
@@ -777,6 +782,26 @@ private class MacroExpansionServiceImplInner(
             }
         }
 
+        private fun handleEventWithoutFile(event: RsPsiTreeChangeEvent) {
+            if (!isNewResolveEnabled) return
+            when (event) {
+                is ChildAddition.After -> {
+                    val file = event.child as? RsFile ?: return
+                    project.defMapService.onFileAdded(file)
+                }
+                is ChildRemoval.Before -> {
+                    val file = event.child as? RsFile ?: return
+                    project.defMapService.onFileRemoved(file)
+                }
+                is PropertyChange.After -> {
+                    if (isUnitTestMode) {
+                        project.defMapService.scheduleRecheckAllDefMaps()
+                    }
+                }
+                else -> Unit
+            }
+        }
+
         override fun rustPsiChanged(file: PsiFile, element: PsiElement, isStructureModification: Boolean) {
             if (!isExpansionModeNew) return
             val shouldScheduleUpdate =
@@ -785,6 +810,7 @@ private class MacroExpansionServiceImplInner(
             if (shouldScheduleUpdate && file is RsFile) {
                 val isWorkspace = file.isWorkspaceMember()
                 scheduleChangedMacrosUpdate(isWorkspace)
+                project.defMapService.onFileChanged(file)
             }
         }
 
