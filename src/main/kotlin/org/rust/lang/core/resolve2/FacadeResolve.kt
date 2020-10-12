@@ -73,6 +73,36 @@ fun processItemDeclarations2(
     return false
 }
 
+/**
+ * null return value means that new resolve can't be used.
+ * [runBeforeResolve] is passed to conform with [MacroResolver],
+ * and it should be called only if we are going to use new resolve.
+ * We need to get [ModData] to check if we can use new resolve, which is not fast,
+ * so we unite check and actual resolve as an optimization.
+ */
+fun processMacros(scope: RsMod, processor: RsResolveProcessor, runBeforeResolve: () -> Boolean): Boolean? {
+    val (project, defMap, modData) = when (val info = getModInfo(scope)) {
+        CantUseNewResolve -> return null
+        InfoNotFound -> return false
+        is RsModInfo -> info
+    }
+    if (runBeforeResolve()) return true
+
+    for ((name, macroInfo) in modData.legacyMacros.entriesWithName(processor.name)) {
+        val visItem = VisItem(macroInfo.path, Visibility.Public)
+        val macros = visItem.toPsi(defMap, project, Namespace.Macros).singleOrNull() ?: continue
+        processor(name, macros) && return true
+    }
+
+    for ((name, perNs) in modData.visibleItems.entriesWithName(processor.name)) {
+        val visItem = perNs.macros ?: continue
+        val macros = visItem.toPsi(defMap, project, Namespace.Macros).singleOrNull() ?: continue
+        processor(name, macros) && return true
+    }
+
+    return false
+}
+
 private sealed class RsModInfoBase {
     object CantUseNewResolve : RsModInfoBase()
     object InfoNotFound : RsModInfoBase()
