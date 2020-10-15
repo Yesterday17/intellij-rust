@@ -109,7 +109,7 @@ class LcovCoverageReport {
             val uri = file.toURI()
             val normalizedUri = uri.normalize()
             var normalizedPath = normalizedUri.path
-            if (normalizedPath.startsWith(UNIX_SEPARATOR) && File.separator != UNIX_SEPARATOR) {
+            if (normalizedPath.startsWith(UNIX_SEPARATOR) && File.separator != UNIX_SEPARATOR) { // TODO: take WSL into account
                 normalizedPath = normalizedPath.substring(1)
             }
             return normalizedPath

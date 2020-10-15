@@ -13,6 +13,8 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.LayeredIcon
 import org.rust.ide.sdk.flavors.RustupSdkFlavor
+import org.rust.remote.sdk.RsRemoteSdkUtils.hasInvalidRemoteCredentials
+import org.rust.remote.sdk.RsRemoteSdkUtils.isIncompleteRemote
 import org.rust.stdext.toPath
 import javax.swing.Icon
 
@@ -30,7 +32,11 @@ object RsSdkRenderingUtils {
      * Returns modifier that shortly describes that is wrong with passed [sdk], [name] and additional info.
      */
     fun name(sdk: Sdk, name: String, version: String? = sdk.versionString): SdkName {
-        val modifier = if (RsSdkUtils.isInvalid(sdk)) "invalid" else null
+        val modifier = when {
+            RsSdkValidator.isInvalid(sdk) || hasInvalidRemoteCredentials(sdk) -> "invalid"
+            isIncompleteRemote(sdk) -> "incomplete"
+            else -> null
+        }
         return SdkName(name, version, modifier)
     }
 
@@ -53,7 +59,9 @@ object RsSdkRenderingUtils {
     fun icon(sdk: Sdk): Icon? {
         val icon = (sdk.sdkType as? SdkType)?.icon ?: return null
         return when {
-            RsSdkUtils.isInvalid(sdk) -> wrapIconWithWarningDecorator(icon)
+            RsSdkValidator.isInvalid(sdk)
+                || isIncompleteRemote(sdk)
+                || hasInvalidRemoteCredentials(sdk) -> wrapIconWithWarningDecorator(icon)
             sdk is RsDetectedSdk -> IconLoader.getTransparentIcon(icon)
             else -> icon
         }

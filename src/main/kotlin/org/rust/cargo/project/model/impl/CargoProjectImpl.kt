@@ -58,8 +58,14 @@ import org.rust.ide.sdk.RsSdkType
 import org.rust.ide.sdk.key
 import org.rust.lang.RsFileType
 import org.rust.lang.core.macros.macroExpansionManager
-import org.rust.openapiext.*
-import org.rust.stdext.*
+import org.rust.openapiext.CachedVirtualFile
+import org.rust.openapiext.TaskResult
+import org.rust.openapiext.modules
+import org.rust.openapiext.pathAsPath
+import org.rust.stdext.AsyncValue
+import org.rust.stdext.applyWithSymlink
+import org.rust.stdext.exhaustive
+import org.rust.stdext.mapNotNullToSet
 import org.rust.taskQueue
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -433,7 +439,7 @@ open class CargoProjectsServiceImpl(
      */
     override fun noStateLoaded() {
         // Do nothing: in theory, we might try to do [discoverAndRefresh]
-        // here, but the `RustToolchain` is most likely not ready.
+        // here, but the `RsToolchain` is most likely not ready.
         //
         // So the actual "Let's guess a project model if it is not imported
         // explicitly" happens in [org.rust.ide.notifications.MissingToolchainNotificationProvider]

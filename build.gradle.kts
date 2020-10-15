@@ -206,6 +206,7 @@ project(":plugin") {
         implementation(project(":intelliLang"))
         implementation(project(":duplicates"))
         implementation(project(":grazie"))
+        implementation(project(":wsl"))
     }
 
     tasks {
@@ -404,6 +405,18 @@ project(":coverage") {
 project(":grazie") {
     intellij {
         setPlugins(graziePlugin)
+    }
+    dependencies {
+        implementation(project(":"))
+        implementation(project(":common"))
+        testImplementation(project(":", "testOutput"))
+        testImplementation(project(":common", "testOutput"))
+    }
+}
+
+project(":wsl") {
+    intellij {
+        setPlugins("WSL")
     }
     dependencies {
         implementation(project(":"))

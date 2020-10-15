@@ -14,7 +14,7 @@ object SystemPathSdkFlavor : RsSdkFlavor {
     override fun getHomePathCandidates(): List<Path> =
         System.getenv("PATH")
             .orEmpty()
-            .split(File.pathSeparator)
+            .split(File.pathSeparator) // TODO
             .filter { it.isNotEmpty() }
             .map { it.toPath() }
             .filter { it.isDirectory() }

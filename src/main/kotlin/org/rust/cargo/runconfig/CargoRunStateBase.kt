@@ -8,7 +8,6 @@ package org.rust.cargo.runconfig
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.PtyCommandLine
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.rust.cargo.CargoCommandLine
 import org.rust.cargo.project.model.CargoProject
@@ -67,8 +66,6 @@ abstract class CargoRunStateBase(
                 .withInitialColumns(PtyCommandLine.MAX_COLUMNS)
                 .withConsoleMode(false)
         }
-        val handler = RsKillableColoredProcessHandler(commandLine)
-        ProcessTerminatedListener.attach(handler) // shows exit code upon termination
-        return handler
+        return RsProcessHandler.create(commandLine)
     }
 }

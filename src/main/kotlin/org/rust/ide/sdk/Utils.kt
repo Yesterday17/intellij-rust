@@ -12,6 +12,7 @@ import com.intellij.openapi.projectRoots.SdkModificator
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import org.rust.cargo.project.configurable.RsConfigurableToolchainList
 import org.rust.cargo.toolchain.RsToolchain
+import org.rust.cargo.toolchain.RsToolchainProvider
 import org.rust.cargo.toolchain.rustup
 import org.rust.ide.sdk.flavors.RsSdkFlavor
 import org.rust.ide.sdk.flavors.RustupSdkFlavor
@@ -30,11 +31,7 @@ val Sdk.key: String?
     get() = rustData?.sdkKey
 
 val Sdk.toolchain: RsToolchain?
-    get() {
-        val homePath = homePath?.toPath() ?: return null
-        val toolchainName = rustData?.toolchainName
-        return RsToolchain(homePath, toolchainName)
-    }
+    get() = RsToolchainProvider.getToolchain(this)
 
 val Sdk.explicitPathToStdlib: String?
     get() = rustData?.explicitPathToStdlib
@@ -43,11 +40,6 @@ private val Sdk.rustData: RsSdkAdditionalData?
     get() = sdkAdditionalData as? RsSdkAdditionalData
 
 object RsSdkUtils {
-
-    fun isInvalid(sdk: Sdk): Boolean {
-        val toolchain = sdk.homeDirectory
-        return toolchain == null || !toolchain.exists()
-    }
 
     fun getAllRustSdks(): List<Sdk> = ProjectJdkTable.getInstance().getSdksOfType(RsSdkType.getInstance())
 
@@ -78,6 +70,7 @@ object RsSdkUtils {
         return SdkConfigurationUtil.createAndAddSDK(homePath, RsSdkType.getInstance())
     }
 
+    // TODO
     fun createRustSdkAdditionalData(sdkPath: Path): RsSdkAdditionalData? {
         val data = RsSdkAdditionalData()
         val rustup = RsToolchain(sdkPath, null).rustup()

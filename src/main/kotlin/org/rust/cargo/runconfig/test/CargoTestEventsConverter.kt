@@ -89,7 +89,7 @@ class CargoTestEventsConverter(
             EXECUTABLE_NAME -> {
                 val executableName = text
                     .trim()
-                    .substringAfterLast(File.separator)
+                    .substringAfterLast(File.separator) // TODO: take WSL into account
                     .substringBeforeLast(".")
                     .takeIf { it.isNotEmpty() }
                     ?: error("Can't parse the executable name")

@@ -151,10 +151,10 @@ class CargoTest : RsTestBase() {
         return result
     }
 
-    private val toolchain get() = RsToolchain(Paths.get("/usr/bin"), null)
+    private val toolchain get() = RsLocalToolchain(Paths.get("/usr/bin"), null)
     private val cargo = toolchain.cargo()
 
-    private val toolchainNightly get() = RsToolchain(Paths.get("/usr/bin"), "nightly")
+    private val toolchainNightly get() = RsLocalToolchain(Paths.get("/usr/bin"), "nightly")
     private val cargoNightly = toolchainNightly.cargo()
 
     private val drive = Paths.get("/").toAbsolutePath().toString().toUnixSlashes()

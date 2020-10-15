@@ -12,5 +12,6 @@ include(
     "intelliLang",
     "duplicates",
     "grazie",
+    "wsl",
     "intellij-toml"
 )
