@@ -57,6 +57,12 @@ val TomlKey.isFeaturesKey: Boolean
 val TomlTableHeader.isDependencyListHeader: Boolean
     get() = names.lastOrNull()?.isDependencyKey == true
 
+val TomlTableHeader.isSpecificDependencyTableHeader: Boolean
+    get() {
+        val names = names
+        return names.getOrNull(names.size - 2)?.isDependencyKey == true
+    }
+
 val TomlTableHeader.isFeatureListHeader: Boolean
     get() = names.lastOrNull()?.isFeaturesKey == true
 
@@ -83,6 +89,9 @@ class StringValueInsertionHandler(private val keyValue: TomlKeyValue) : InsertHa
 
 private val TomlLiteral.literalType: IElementType
     get() = children.first().elementType
+
+fun TomlKeyValueOwner.getValueWithKey(key: String): TomlValue? =
+    entries.find { it.key.text == key }?.value
 
 fun getClosestKeyValueAncestor(position: PsiElement): TomlKeyValue? {
     val parent = position.parent ?: return null
