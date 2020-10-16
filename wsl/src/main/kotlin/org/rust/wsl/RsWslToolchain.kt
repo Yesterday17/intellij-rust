@@ -8,24 +8,19 @@ package org.rust.wsl
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.wsl.WSLDistribution
-import com.intellij.openapi.projectRoots.Sdk
 import org.rust.cargo.runconfig.RsProcessHandler
 import org.rust.cargo.toolchain.RsToolchain
 import org.rust.cargo.toolchain.RsToolchainProvider
-import org.rust.ide.sdk.RsSdkAdditionalData
 import org.rust.stdext.toPath
 import java.io.File
 import java.nio.file.Path
 
 object RsWslToolchainProvider : RsToolchainProvider {
-    override fun isApplicable(sdk: Sdk): Boolean = sdk.isWsl
+    override fun isApplicable(homePath: String): Boolean = homePath.startsWith(WSL_CREDENTIALS_PREFIX)
 
-    override fun getToolchain(sdk: Sdk): RsToolchain? {
-        val homePath = sdk.homePath?.toPath() ?: return null
-        val additionalData = sdk.sdkAdditionalData as? RsSdkAdditionalData ?: return null
-        val toolchainName = additionalData.toolchainName
-        val distribution = sdk.distribution?.successOrNull ?: return null
-        return RsWslToolchain(homePath, toolchainName, distribution)
+    override fun getToolchain(homePath: String, toolchainName: String?): RsToolchain? {
+        val (wslPath, distribution) = parseSdkHomePath(homePath) ?: return null
+        return RsWslToolchain(wslPath.toPath(), toolchainName, distribution)
     }
 }
 

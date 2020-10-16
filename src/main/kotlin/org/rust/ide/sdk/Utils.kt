@@ -19,7 +19,6 @@ import org.rust.ide.sdk.flavors.RustupSdkFlavor
 import org.rust.ide.sdk.flavors.suggestHomePaths
 import org.rust.openapiext.computeWithCancelableProgress
 import org.rust.stdext.toPath
-import java.nio.file.Path
 
 fun Sdk.modify(action: (SdkModificator) -> Unit) {
     val sdkModificator = sdkModificator
@@ -31,7 +30,12 @@ val Sdk.key: String?
     get() = rustData?.sdkKey
 
 val Sdk.toolchain: RsToolchain?
-    get() = RsToolchainProvider.getToolchain(this)
+    get() {
+        val homePath = homePath ?: return null
+        val additionalData = sdkAdditionalData as? RsSdkAdditionalData ?: return null
+        val toolchainName = additionalData.toolchainName
+        return RsToolchainProvider.getToolchain(homePath, toolchainName)
+    }
 
 val Sdk.explicitPathToStdlib: String?
     get() = rustData?.explicitPathToStdlib
@@ -71,9 +75,10 @@ object RsSdkUtils {
     }
 
     // TODO
-    fun createRustSdkAdditionalData(sdkPath: Path): RsSdkAdditionalData? {
+    fun createRustSdkAdditionalData(homePath: String): RsSdkAdditionalData? {
         val data = RsSdkAdditionalData()
-        val rustup = RsToolchain(sdkPath, null).rustup()
+        val toolchain = RsToolchainProvider.getToolchain(homePath, null) ?: return null
+        val rustup = toolchain.rustup()
         if (rustup != null) {
             val project = ProjectManager.getInstance().defaultProject
             // TODO: Fix `Synchronous execution on EDT`

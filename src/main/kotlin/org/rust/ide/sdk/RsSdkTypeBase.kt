@@ -16,6 +16,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jdom.Element
 import org.rust.cargo.toolchain.RsToolchain
+import org.rust.cargo.toolchain.RsToolchainProvider
 import org.rust.cargo.toolchain.tools.rustc
 import org.rust.ide.icons.RsIcons
 import org.rust.ide.sdk.RsSdkUtils.createRustSdkAdditionalData
@@ -117,8 +118,8 @@ abstract class RsSdkTypeBase : SdkType(RUST_SDK_ID_NAME) {
     }
 
     override fun getVersionString(sdkHome: String?): String? {
-        val sdkPath = sdkHome?.toPath() ?: return null
-        val toolchain = RsToolchain(sdkPath, null)
+        if (sdkHome == null) return null
+        val toolchain = RsToolchainProvider.getToolchain(sdkHome, null) ?: return null
         return getVersionString(toolchain)
     }
 

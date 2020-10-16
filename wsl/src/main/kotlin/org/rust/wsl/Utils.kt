@@ -37,19 +37,25 @@ internal val RsRemoteSdkAdditionalData.isWsl: Boolean
 internal fun WSLDistribution.expandUserHome(path: String): String {
     if (!path.startsWith("~/")) return path
     val userHome = environment["HOME"] ?: return path
-    return "$userHome${path.drop(1)}"
+    return "$userHome${path.substring(1)}"
 }
 
 internal fun WSLDistribution.toUncPath(wslPath: String): String =
     WSLDistribution.UNC_PREFIX + msId + FileUtil.toSystemDependentName(wslPath)
 
-internal fun parseUncPath(uncPath: String): Pair<WSLDistribution, String>? {
-    if (!uncPath.startsWith(WSLDistribution.UNC_PREFIX)) return null
-    val path = uncPath.removePrefix(WSLDistribution.UNC_PREFIX)
-    val index = path.indexOf('\\')
+internal fun parseUncPath(uncPath: String): Pair<String, WSLDistribution>? =
+    parseWslPath(uncPath, WSLDistribution.UNC_PREFIX)
+
+internal fun parseSdkHomePath(sdkHome: String): Pair<String, WSLDistribution>? =
+    parseWslPath(sdkHome, WSL_CREDENTIALS_PREFIX)
+
+private fun parseWslPath(fullPath: String, prefix: String): Pair<String, WSLDistribution>? {
+    if (!fullPath.startsWith(prefix)) return null
+    val path = FileUtil.toSystemIndependentName(fullPath.removePrefix(prefix))
+    val index = path.indexOf('/')
     if (index == -1) return null
+    val wslPath = path.substring(index)
     val distName = path.substring(0, index)
     val distribution = WSLUtil.getDistributionByMsId(distName) ?: return null
-    val wslPath = FileUtil.toSystemIndependentName(path.substring(index))
-    return distribution to wslPath
+    return wslPath to distribution
 }
