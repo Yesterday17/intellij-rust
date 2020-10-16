@@ -111,7 +111,7 @@ abstract class RsAsyncRunner(
         manager.patchCommandLine(runConfiguration, environment, cmd, context)
         manager.patchCommandLineState(runConfiguration, environment, state, context)
 
-        val handler = RsKillableColoredProcessHandler(cmd)
+        val handler = RsProcessHandler(cmd)
         ProcessTerminatedListener.attach(handler) // shows exit code upon termination
 
         manager.attachExtensionsToProcess(runConfiguration, handler, environment, context)
@@ -144,7 +144,7 @@ abstract class RsAsyncRunner(
         val cargo = state.cargo()
 
         val processForUserOutput = ProcessOutput()
-        val processForUser = RsKillableColoredProcessHandler(cargo.toColoredCommandLine(project, command))
+        val processForUser = RsProcessHandler(cargo.toColoredCommandLine(project, command))
 
         processForUser.addProcessListener(CapturingProcessAdapter(processForUserOutput))
 

@@ -13,7 +13,7 @@ import com.intellij.openapi.util.Key
 /**
  * Same as [com.intellij.execution.process.KillableColoredProcessHandler], but uses [RsAnsiEscapeDecoder].
  */
-class RsKillableColoredProcessHandler(commandLine: GeneralCommandLine)
+class RsProcessHandler(commandLine: GeneralCommandLine)
     : KillableProcessHandler(mediate(commandLine, false, false)),
       AnsiEscapeDecoder.ColoredTextAcceptor {
     private val decoder: AnsiEscapeDecoder = RsAnsiEscapeDecoder()

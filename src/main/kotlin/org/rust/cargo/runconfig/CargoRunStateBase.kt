@@ -67,7 +67,7 @@ abstract class CargoRunStateBase(
                 .withInitialColumns(PtyCommandLine.MAX_COLUMNS)
                 .withConsoleMode(false)
         }
-        val handler = RsKillableColoredProcessHandler(commandLine)
+        val handler = RsProcessHandler(commandLine)
         ProcessTerminatedListener.attach(handler) // shows exit code upon termination
         return handler
     }
