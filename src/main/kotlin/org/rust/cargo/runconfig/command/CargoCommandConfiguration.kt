@@ -8,29 +8,25 @@ package org.rust.cargo.runconfig.command
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.Executor
 import com.intellij.execution.configuration.EnvironmentVariablesData
-import com.intellij.execution.configurations.*
+import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.execution.ParametersListUtil
 import org.jdom.Element
 import org.rust.cargo.CargoCommandLine
 import org.rust.cargo.project.model.CargoProject
 import org.rust.cargo.project.model.cargoProjects
-import org.rust.cargo.project.settings.toolchain
 import org.rust.cargo.runconfig.*
 import org.rust.cargo.runconfig.buildtool.CargoBuildTaskProvider
 import org.rust.cargo.runconfig.ui.CargoCommandConfigurationEditor
 import org.rust.cargo.toolchain.BacktraceMode
 import org.rust.cargo.toolchain.RsToolchain
-import org.rust.cargo.toolchain.RustChannel
-import org.rust.cargo.toolchain.isRustupAvailable
 import org.rust.ide.experiments.RsExperiments
-import org.rust.ide.sdk.RsSdkUtils.findSdkByKey
-import org.rust.ide.sdk.key
-import org.rust.ide.sdk.toolchain
 import org.rust.openapiext.isFeatureEnabled
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -45,22 +41,14 @@ class CargoCommandConfiguration(
     project: Project,
     name: String,
     factory: ConfigurationFactory
-) : LocatableConfigurationBase<RunProfileState>(project, factory, name),
-    RunConfigurationWithSuppressedDefaultDebugAction {
+) : RsCommandConfiguration(project, name, factory) {
 
-    var sdkKey: String? = null
     var command: String = "run"
     var allFeatures: Boolean = false
     var emulateTerminal: Boolean = false
     var backtrace: BacktraceMode = BacktraceMode.SHORT
     var workingDirectory: Path? = project.cargoProjects.allProjects.firstOrNull()?.workingDirectory
     var env: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
-
-    var sdk: Sdk?
-        get() = sdkKey?.let { findSdkByKey(it) }
-        set(value) {
-            sdkKey = value?.key
-        }
 
     override fun getBeforeRunTasks(): List<BeforeRunTask<*>> {
         val tasks = super.getBeforeRunTasks()
@@ -73,7 +61,6 @@ class CargoCommandConfiguration(
 
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
-        element.writeString("sdkKey", sdkKey)
         element.writeString("command", command)
         element.writeBool("allFeatures", allFeatures)
         element.writeBool("emulateTerminal", emulateTerminal)
@@ -88,7 +75,6 @@ class CargoCommandConfiguration(
      */
     override fun readExternal(element: Element) {
         super.readExternal(element)
-        element.readString("sdkKey")?.let { sdkKey = it }
         element.readString("command")?.let { command = it }
         element.readBool("allFeatures")?.let { allFeatures = it }
         element.readBool("emulateTerminal")?.let { emulateTerminal = it }
@@ -163,7 +149,7 @@ class CargoCommandConfiguration(
             )
         }
 
-        val toolchain = sdk?.toolchain ?: project.toolchain
+        val toolchain = toolchain
         return when {
             toolchain == null -> CleanConfiguration.error("No Rust toolchain specified")
             !toolchain.looksLikeValidToolchain() -> CleanConfiguration.error("Invalid toolchain: ${toolchain.presentableLocation}")

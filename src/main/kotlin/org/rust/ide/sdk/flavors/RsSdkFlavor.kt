@@ -34,8 +34,11 @@ interface RsSdkFlavor {
      * @param sdkPath path to check.
      * @return true if paths points to a valid home.
      */
-    fun isValidSdkPath(sdkPath: Path): Boolean =
-        sdkPath.isDirectory() && sdkPath.hasExecutable(Rustc.NAME) && sdkPath.hasExecutable(Cargo.NAME)
+    fun isValidSdkPath(sdkPath: Path): Boolean {
+        return sdkPath.isDirectory()
+            && sdkPath.hasExecutable(Rustc.NAME)
+            && sdkPath.hasExecutable(Cargo.NAME)
+    }
 
     companion object {
         @JvmField

@@ -18,8 +18,6 @@ import javax.swing.Icon
 
 data class SdkName(val primary: String, val secondary: String?, val modifier: String?)
 
-enum class RsRenderedSdkType { RUSTUP, CARGO }
-
 object RsSdkRenderingUtils {
     const val noToolchainMarker: String = "<No toolchain>"
 
@@ -58,18 +56,6 @@ object RsSdkRenderingUtils {
             else -> icon
         }
     }
-
-    fun groupSdksByTypes(allSdks: List<Sdk>, isInvalid: (Sdk) -> Boolean): Map<RsRenderedSdkType, List<Sdk>> =
-        allSdks.asSequence()
-            .filterNot(isInvalid)
-            .groupBy {
-                val homePath = it.homePath?.toPath()
-                if (homePath != null && RustupSdkFlavor.isValidSdkPath(homePath)) {
-                    RsRenderedSdkType.RUSTUP
-                } else {
-                    RsRenderedSdkType.CARGO
-                }
-            }
 
     private fun wrapIconWithWarningDecorator(icon: Icon): Icon =
         LayeredIcon.create(icon, AllIcons.Actions.Cancel)

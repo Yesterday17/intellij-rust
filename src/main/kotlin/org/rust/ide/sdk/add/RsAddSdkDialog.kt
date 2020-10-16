@@ -25,8 +25,8 @@ class RsAddSdkDialog private constructor(
     project: Project?,
     private val existingSdks: List<Sdk>
 ) : DialogWrapper(project) {
-    private var selectedPanel: RsAddToolchainPanel? = null
-    private var panels: List<RsAddToolchainPanel> = emptyList()
+    private var selectedPanel: RsAddSdkPanel? = null
+    private var panels: List<RsAddSdkPanel> = emptyList()
     private var navigationPanelCardLayout: CardLayout? = null
     private var southPanel: JPanel? = null
 
@@ -36,7 +36,7 @@ class RsAddSdkDialog private constructor(
 
     override fun createCenterPanel(): JComponent {
         val mainPanel = JPanel(JBCardLayout())
-        val panels = listOf(RsAddLocalToolchainPanel(existingSdks))
+        val panels = listOf(RsAddLocalSdkPanel(existingSdks))
         mainPanel.add(SPLITTER_COMPONENT_CARD_PANE, createCardSplitter(panels))
         return mainPanel
     }
@@ -68,12 +68,12 @@ class RsAddSdkDialog private constructor(
                 }
             }
             val cardsList = JBList(panels).apply {
-                val descriptor = object : ListItemDescriptorAdapter<RsAddToolchainPanel>() {
-                    override fun getTextFor(value: RsAddToolchainPanel): String = value.panelName
-                    override fun getIconFor(value: RsAddToolchainPanel): Icon = value.icon
+                val descriptor = object : ListItemDescriptorAdapter<RsAddSdkPanel>() {
+                    override fun getTextFor(value: RsAddSdkPanel): String = value.panelName
+                    override fun getIconFor(value: RsAddSdkPanel): Icon = value.icon
                 }
 
-                cellRenderer = object : GroupedItemsListRenderer<RsAddToolchainPanel>(descriptor) {
+                cellRenderer = object : GroupedItemsListRenderer<RsAddSdkPanel>(descriptor) {
                     override fun createItemComponent(): JComponent = super.createItemComponent()
                         .apply { border = JBUI.Borders.empty(4, 4, 4, 10) }
                 }

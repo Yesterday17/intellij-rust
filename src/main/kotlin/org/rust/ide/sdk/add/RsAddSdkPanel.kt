@@ -15,7 +15,7 @@ import javax.swing.JPanel
 /**
  * Represents the view for adding new Rust SDK. It is used in [RsAddSdkDialog].
  */
-abstract class RsAddToolchainPanel : JPanel(), Disposable {
+abstract class RsAddSdkPanel : JPanel(), Disposable {
     abstract val panelName: String
         @Nls(capitalization = Nls.Capitalization.Title) get
 

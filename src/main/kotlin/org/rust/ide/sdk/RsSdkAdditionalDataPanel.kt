@@ -134,8 +134,9 @@ class RsSdkAdditionalDataPanel : Disposable {
             onPooledThread = {
                 val toolchain = toolchain
                 val rustup = toolchain?.rustup()
-                val rustcVersion = toolchain?.rustc()?.queryVersion()?.semver
-                val stdlibLocation = toolchain?.rustc()?.getStdlibFromSysroot()?.presentableUrl
+                val rustc = toolchain?.rustc()
+                val rustcVersion = rustc?.queryVersion()?.semver
+                val stdlibLocation = rustc?.getStdlibFromSysroot()?.presentableUrl
                 val toolchains = if (refreshToolchainList) rustup?.listToolchains().orEmpty() else null
                 Data(rustcVersion, stdlibLocation, toolchains, rustup != null)
             },
