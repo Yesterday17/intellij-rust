@@ -32,6 +32,10 @@ abstract class RsToolchain(val location: Path, val name: String?) {
 
     fun looksLikeValidToolchain(): Boolean = hasExecutable(Cargo.NAME) && hasExecutable(Rustc.NAME)
 
+    abstract fun toLocalPath(remotePath: String): String
+
+    abstract fun toRemotePath(localPath: String): String
+
     abstract fun expandUserHome(remotePath: String): String
 
     protected abstract fun getExecutableName(toolName: String): String

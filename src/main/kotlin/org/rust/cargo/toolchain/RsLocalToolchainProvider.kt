@@ -20,6 +20,10 @@ object RsLocalToolchainProvider : RsToolchainProvider {
 
 class RsLocalToolchain(location: Path, name: String?) : RsToolchain(location, name) {
 
+    override fun toLocalPath(remotePath: String): String = remotePath
+
+    override fun toRemotePath(localPath: String): String = localPath
+
     override fun expandUserHome(remotePath: String): String = FileUtil.expandUserHome(remotePath)
 
     override fun getExecutableName(toolName: String): String =

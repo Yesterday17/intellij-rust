@@ -153,6 +153,7 @@ class Cargo(private val toolchain: RsToolchain, useWrapper: Boolean = false) {
             .dropWhile { it != '{' }
         val project = try {
             Gson().fromJson(json, CargoMetadata.Project::class.java)
+                .apply { convertPaths(toolchain::toLocalPath) }
         } catch (e: JsonSyntaxException) {
             throw ExecutionException(e)
         }
