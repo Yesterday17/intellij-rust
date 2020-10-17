@@ -30,6 +30,8 @@ interface RsToolchainProvider {
 abstract class RsToolchain(val location: Path, val name: String?) {
     val presentableLocation: String = pathToExecutable(Cargo.NAME).toString()
 
+    abstract val fileSeparator: String
+
     fun looksLikeValidToolchain(): Boolean = hasExecutable(Cargo.NAME) && hasExecutable(Rustc.NAME)
 
     abstract fun toLocalPath(remotePath: String): String

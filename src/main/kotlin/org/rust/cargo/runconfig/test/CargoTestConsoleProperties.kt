@@ -6,7 +6,6 @@
 package org.rust.cargo.runconfig.test
 
 import com.intellij.execution.Executor
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.testframework.Printer
 import com.intellij.execution.testframework.TestConsoleProperties
 import com.intellij.execution.testframework.sm.SMCustomMessagesParsing
@@ -14,11 +13,16 @@ import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsC
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.execution.testframework.sm.runner.SMTestLocator
 import com.intellij.execution.ui.ConsoleViewContentType
+import org.rust.cargo.project.settings.toolchain
+import org.rust.cargo.runconfig.RsCommandConfiguration
+import org.rust.cargo.toolchain.RsToolchain
+import org.rust.ide.sdk.toolchain
 
 class CargoTestConsoleProperties(
-    config: RunConfiguration,
+    config: RsCommandConfiguration,
     executor: Executor
 ) : SMTRunnerConsoleProperties(config, TEST_FRAMEWORK_NAME, executor), SMCustomMessagesParsing {
+    private val toolchain: RsToolchain? = config.sdk?.toolchain ?: project.toolchain
 
     init {
         isIdBasedTestTree = true
@@ -29,7 +33,7 @@ class CargoTestConsoleProperties(
     override fun createTestEventsConverter(
         testFrameworkName: String,
         consoleProperties: TestConsoleProperties
-    ): OutputToGeneralTestEventsConverter = CargoTestEventsConverter(testFrameworkName, consoleProperties)
+    ): OutputToGeneralTestEventsConverter = CargoTestEventsConverter(testFrameworkName, consoleProperties, toolchain)
 
     override fun printExpectedActualHeader(printer: Printer, expected: String, actual: String) {
         printer.print("\n", ConsoleViewContentType.ERROR_OUTPUT)

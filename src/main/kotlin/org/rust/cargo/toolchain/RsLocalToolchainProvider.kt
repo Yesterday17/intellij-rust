@@ -9,6 +9,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import org.rust.ide.sdk.remote.RsRemoteSdkUtils.isCustomSdkHomePath
 import org.rust.stdext.toPath
+import java.io.File
 import java.nio.file.Path
 
 object RsLocalToolchainProvider : RsToolchainProvider {
@@ -19,6 +20,7 @@ object RsLocalToolchainProvider : RsToolchainProvider {
 }
 
 class RsLocalToolchain(location: Path, name: String?) : RsToolchain(location, name) {
+    override val fileSeparator: String get() = File.separator
 
     override fun toLocalPath(remotePath: String): String = remotePath
 
