@@ -18,10 +18,7 @@ import com.intellij.ui.components.Link
 import com.intellij.ui.layout.LayoutBuilder
 import com.intellij.util.io.DigestUtil
 import com.intellij.util.text.SemVer
-import org.rust.cargo.toolchain.RsToolchain
-import org.rust.cargo.toolchain.Rustup
-import org.rust.cargo.toolchain.isRustupAvailable
-import org.rust.cargo.toolchain.rustup
+import org.rust.cargo.toolchain.*
 import org.rust.cargo.toolchain.tools.rustc
 import org.rust.ide.sdk.flavors.RustupSdkFlavor
 import org.rust.openapiext.UiDebouncer
@@ -89,8 +86,8 @@ class RsSdkAdditionalDataPanel : Disposable {
 
     private val toolchain: RsToolchain?
         get() {
-            val homePath = sdkHome?.toPath() ?: return null
-            return RsToolchain(homePath, toolchainName)
+            val sdkHome = sdkHome ?: return null
+            return RsToolchainProvider.getToolchain(sdkHome, toolchainName)
         }
 
     private val updateDebouncer: UiDebouncer = UiDebouncer(this)
