@@ -57,7 +57,7 @@ class RsAddSdkDialog private constructor(
 
     fun getOrCreateSdk(): Sdk? = selectedPanel?.getOrCreateSdk()
 
-    private fun createCardSplitter(panels: List<RsAddToolchainPanel>): Splitter {
+    private fun createCardSplitter(panels: List<RsAddSdkPanel>): Splitter {
         this.panels = panels
         return Splitter(false, 0.25f).apply {
             val cardLayout = CardLayout()
