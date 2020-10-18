@@ -1028,6 +1028,9 @@
         <!-- Toolchains -->
         <toolchainProvider implementation="org.rust.cargo.toolchain.RsLocalToolchainProvider"/>
 
+        <!-- Add SDK Panels -->
+        <addSdkProvider implementation="org.rust.ide.sdk.add.RsAddLocalSdkProvider"/>
+
         <!-- SDK Flavors -->
         <sdkFlavor implementation="org.rust.ide.sdk.flavors.RustupSdkFlavor"/>
         <sdkFlavor implementation="org.rust.ide.sdk.flavors.RustupToolchainSdkFlavor"/>
@@ -1049,6 +1052,9 @@
                         dynamic="true"/>
         <extensionPoint qualifiedName="org.rust.sdkValidator"
                         interface="org.rust.ide.sdk.RsSdkValidator"
+                        dynamic="true"/>
+        <extensionPoint qualifiedName="org.rust.addSdkProvider"
+                        interface="org.rust.ide.sdk.add.RsAddSdkProvider"
                         dynamic="true"/>
     </extensionPoints>
 
