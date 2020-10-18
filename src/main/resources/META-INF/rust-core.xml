@@ -1047,6 +1047,9 @@
         <extensionPoint qualifiedName="org.rust.sdkFlavor"
                         interface="org.rust.ide.sdk.flavors.RsSdkFlavor"
                         dynamic="true"/>
+        <extensionPoint qualifiedName="org.rust.sdkValidator"
+                        interface="org.rust.ide.sdk.RsSdkValidator"
+                        dynamic="true"/>
     </extensionPoints>
 
     <applicationListeners>

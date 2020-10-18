@@ -12,8 +12,6 @@ import com.intellij.openapi.projectRoots.SdkType
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.LayeredIcon
-import org.rust.ide.sdk.flavors.RustupSdkFlavor
-import org.rust.stdext.toPath
 import javax.swing.Icon
 
 data class SdkName(val primary: String, val secondary: String?, val modifier: String?)
@@ -28,7 +26,7 @@ object RsSdkRenderingUtils {
      * Returns modifier that shortly describes that is wrong with passed [sdk], [name] and additional info.
      */
     fun name(sdk: Sdk, name: String, version: String? = sdk.versionString): SdkName {
-        val modifier = if (RsSdkUtils.isInvalid(sdk)) "invalid" else null
+        val modifier = if (RsSdkValidator.isInvalid(sdk)) "invalid" else null
         return SdkName(name, version, modifier)
     }
 
@@ -51,7 +49,7 @@ object RsSdkRenderingUtils {
     fun icon(sdk: Sdk): Icon? {
         val icon = (sdk.sdkType as? SdkType)?.icon ?: return null
         return when {
-            RsSdkUtils.isInvalid(sdk) -> wrapIconWithWarningDecorator(icon)
+            RsSdkValidator.isInvalid(sdk) -> wrapIconWithWarningDecorator(icon)
             sdk is RsDetectedSdk -> IconLoader.getTransparentIcon(icon)
             else -> icon
         }
