@@ -74,7 +74,7 @@ object RsSdkUtils {
         return SdkConfigurationUtil.createAndAddSDK(homePath, RsSdkType.getInstance())
     }
 
-    fun createRustSdkAdditionalData(sdkPath: Path): RsSdkAdditionalData? {
+    fun createRustSdkAdditionalData(homePath: String): RsSdkAdditionalData? {
         val data = RsSdkAdditionalData()
         val toolchain = RsToolchainProvider.getToolchain(homePath, null) ?: return null
         val rustup = toolchain.rustup()

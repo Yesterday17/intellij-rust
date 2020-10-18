@@ -22,6 +22,9 @@ import org.rust.ide.icons.RsIcons
 import org.rust.ide.sdk.RsSdkUtils.createRustSdkAdditionalData
 import org.rust.ide.sdk.RsSdkUtils.detectRustSdks
 import org.rust.ide.sdk.flavors.RsSdkFlavor
+import org.rust.ide.sdk.remote.RsRemoteSdkAdditionalData
+import org.rust.ide.sdk.remote.RsRemoteSdkUtils.isCustomSdkHomePath
+import org.rust.ide.sdk.remote.RsRemoteSdkUtils.isRemoteSdk
 import org.rust.openapiext.computeWithCancelableProgress
 import org.rust.stdext.toPath
 import javax.swing.Icon
@@ -63,11 +66,11 @@ abstract class RsSdkTypeBase : SdkType(RUST_SDK_ID_NAME) {
         val prevAdditionalData = sdk.sdkAdditionalData
         if (prevAdditionalData != null) return true
 
-        val sdkPath = sdk.homePath?.toPath() ?: return false
+        val homePath = sdk.homePath ?: return false
 
-        val newAdditionalData = createRustSdkAdditionalData(sdkPath) ?: return false
+        val newAdditionalData = createRustSdkAdditionalData(homePath) ?: return false
         val suggestedName = buildString {
-            append(suggestSdkName(sdk.name, sdkPath.toString()))
+            append(suggestSdkName(sdk.name, homePath))
             newAdditionalData.toolchainName?.let { append(" ($it)") }
         }
         val newName = SdkConfigurationUtil.createUniqueSdkName(suggestedName, sdkModel.sdks.toList())
@@ -93,8 +96,14 @@ abstract class RsSdkTypeBase : SdkType(RUST_SDK_ID_NAME) {
         (additionalData as? RsSdkAdditionalData)?.save(additional)
     }
 
-    override fun loadAdditionalData(additional: Element): SdkAdditionalData =
-        RsSdkAdditionalData().apply { load(additional) }
+    override fun loadAdditionalData(currentSdk: Sdk, additional: Element): SdkAdditionalData {
+        val homePath = currentSdk.homePath
+        return if (homePath != null && isCustomSdkHomePath(homePath)) {
+            RsRemoteSdkAdditionalData.load(currentSdk, additional)
+        } else {
+            RsSdkAdditionalData.load(additional)
+        }
+    }
 
     override fun getPresentableName(): String = "Rust Toolchain"
 
@@ -114,7 +123,7 @@ abstract class RsSdkTypeBase : SdkType(RUST_SDK_ID_NAME) {
         return getVersionString(toolchain)
     }
 
-    private fun getVersionString(toolchain: RsToolchain): String? {
+    fun getVersionString(toolchain: RsToolchain): String? {
         val project = ProjectManager.getInstance().defaultProject
         val rustcVersion = project.computeWithCancelableProgress("Fetching rustc version...") {
             toolchain.rustc().queryVersion()
@@ -125,7 +134,10 @@ abstract class RsSdkTypeBase : SdkType(RUST_SDK_ID_NAME) {
     // TODO: use [OrderRootType.SOURCES] to store stdlib path
     override fun isRootTypeApplicable(type: OrderRootType): Boolean = false
 
-    override fun sdkHasValidPath(sdk: Sdk): Boolean = sdk.homeDirectory?.isValid ?: false
+    override fun sdkHasValidPath(sdk: Sdk): Boolean =
+        isRemoteSdk(sdk) || sdk.homeDirectory?.isValid ?: false
+
+    override fun isLocalSdk(sdk: Sdk): Boolean = !isRemoteSdk(sdk)
 
     companion object {
         const val RUST_SDK_ID_NAME: String = "Rust SDK"
