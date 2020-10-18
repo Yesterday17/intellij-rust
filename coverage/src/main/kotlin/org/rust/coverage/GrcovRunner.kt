@@ -16,7 +16,6 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.configurations.coverage.CoverageEnabledConfiguration
 import com.intellij.execution.impl.EditConfigurationsDialog
-import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -44,7 +43,6 @@ import org.rust.cargo.toolchain.tools.Cargo.Companion.checkNeedInstallGrcov
 import org.rust.cargo.toolchain.tools.grcov
 import org.rust.cargo.toolchain.tools.rustc
 import org.rust.openapiext.computeWithCancelableProgress
-import org.rust.stdext.toPath
 import java.io.File
 
 class GrcovRunner : RsDefaultProgramRunnerBase() {
@@ -123,11 +121,11 @@ class GrcovRunner : RsDefaultProgramRunnerBase() {
 
             val coverageEnabledConfiguration = CoverageEnabledConfiguration.getOrCreate(runConfiguration)
                 as? RsCoverageEnabledConfiguration ?: return
-            val coverageFilePath = coverageEnabledConfiguration.coverageFilePath?.toPath() ?: return
-            val coverageCmd = grcov.createCommandLine(workingDirectory, coverageFilePath)
+            val coverageFilePath = coverageEnabledConfiguration.coverageFilePath ?: return
+            val grcovCommandLine = grcov.createCommandLine(workingDirectory, coverageFilePath)
+            val coverageProcess = toolchain.startProcess(grcovCommandLine)
 
             try {
-                val coverageProcess = OSProcessHandler(coverageCmd)
                 coverageEnabledConfiguration.coverageProcess = coverageProcess
                 CoverageHelper.attachToProcess(runConfiguration, coverageProcess, runnerSettings)
                 coverageProcess.addProcessListener(object : ProcessAdapter() {

@@ -5,9 +5,11 @@
 
 package org.rust.cargo.toolchain
 
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.util.io.exists
 import com.intellij.util.text.SemVer
+import org.rust.cargo.runconfig.RsProcessHandler
 import org.rust.cargo.toolchain.tools.Cargo
 import org.rust.cargo.toolchain.tools.Rustc
 import org.rust.stdext.isExecutable
@@ -41,6 +43,10 @@ abstract class RsToolchain(val location: Path, val name: String?) {
     abstract fun expandUserHome(remotePath: String): String
 
     protected abstract fun getExecutableName(toolName: String): String
+
+    abstract fun startProcess(commandLine: GeneralCommandLine): RsProcessHandler
+
+    protected abstract fun <T : GeneralCommandLine> patchCommandLine(commandLine: T): T
 
     // for executables from toolchain
     fun pathToExecutable(toolName: String): Path {

@@ -17,7 +17,7 @@ fun RsToolchain.grcov(): Grcov? = if (hasCargoExecutable(Grcov.NAME)) Grcov(this
 class Grcov(toolchain: RsToolchain) {
     private val executable: Path = toolchain.pathToCargoExecutable(NAME)
 
-    fun createCommandLine(workingDirectory: File, coverageFilePath: Path): GeneralCommandLine =
+    fun createCommandLine(workingDirectory: File, coverageFilePath: String): GeneralCommandLine =
         GeneralCommandLine(executable)
             .withWorkDirectory(workingDirectory)
             .withParameters(
@@ -26,7 +26,7 @@ class Grcov(toolchain: RsToolchain) {
                 "--llvm",
                 "--branch",
                 "--ignore-not-existing",
-                "-o", coverageFilePath.toString()
+                "-o", coverageFilePath
             )
             .withCharset(Charsets.UTF_8)
 
