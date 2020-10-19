@@ -28,9 +28,10 @@ import org.rust.cargo.project.settings.rustSettings
 import org.rust.cargo.toolchain.RsToolchainProvider
 import org.rust.cargo.toolchain.tools.rustc
 import org.rust.ide.sdk.add.RsAddSdkDialog
+import org.rust.ide.sdk.edit.RsEditSdkProvider
 import org.rust.ide.sdk.remote.RsCredentialsContribution
 import org.rust.ide.sdk.remote.RsRemoteSdkAdditionalData
-import org.rust.ide.sdk.remote.RsRemoteSdkEditor
+import org.rust.ide.sdk.remote.RsRemoteSdkUtils.isRemoteSdk
 import org.rust.openapiext.computeWithCancelableProgress
 import java.awt.Dimension
 import javax.swing.JComponent
@@ -181,21 +182,36 @@ class RsSdkDetailsDialog(
     private fun editSdk() {
         val currentSdk = editableSelectedSdk ?: return
         val modificator = modificators[currentSdk] ?: return
-        val dialog = RsEditSdkDialog(effectiveProject, modificator) {
+
+        if (isRemoteSdk(currentSdk)) {
+            val data = modificator.sdkAdditionalData
+            check(data is RsRemoteSdkAdditionalData)
+            val credentialsType = data.connectionCredentials().remoteConnectionType
+            if (!isCredentialsTypeSupportedForLanguage(credentialsType, RsCredentialsContribution::class.java)) {
+                Messages.showErrorDialog(
+                    project,
+                    "Cannot load ${credentialsType.name} toolchain. Please make sure corresponding plugin is enabled.",
+                    "Failed Loading Toolchain"
+                )
+                return
+            }
+        }
+
+        val dialog = RsEditSdkProvider.createDialog(effectiveProject, modificator) {
             if (isDuplicateSdkName(it, currentSdk)) {
                 "Please specify a unique name for the toolchain"
             } else {
                 null
             }
-        }
+        } ?: return
 
         if (dialog.showAndGet()) {
-            if (modificator.name != dialog.name
-                || modificator.homePath != dialog.homePath
-                || modificator.sdkAdditionalData != dialog.additionalData) {
-                modificator.name = dialog.name
-                modificator.homePath = dialog.homePath
-                modificator.sdkAdditionalData = dialog.additionalData
+            if (modificator.name != dialog.sdkName
+                || modificator.homePath != dialog.sdkHomePath
+                || modificator.sdkAdditionalData != dialog.sdkAdditionalData) {
+                modificator.name = dialog.sdkName
+                modificator.homePath = dialog.sdkHomePath
+                modificator.sdkAdditionalData = dialog.sdkAdditionalData
                 updateVersionString(modificator)
                 modifiedModificators.add(modificator)
                 sdkList.repaint()

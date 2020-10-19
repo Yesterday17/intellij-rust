@@ -1031,6 +1031,9 @@
         <!-- Add SDK Panels -->
         <addSdkProvider implementation="org.rust.ide.sdk.add.RsAddLocalSdkProvider"/>
 
+        <!-- Edit SDK Dialogs -->
+        <editSdkProvider implementation="org.rust.ide.sdk.edit.RsEditLocalSdkProvider"/>
+
         <!-- SDK Flavors -->
         <sdkFlavor implementation="org.rust.ide.sdk.flavors.RustupSdkFlavor"/>
         <sdkFlavor implementation="org.rust.ide.sdk.flavors.RustupToolchainSdkFlavor"/>
@@ -1055,6 +1058,9 @@
                         dynamic="true"/>
         <extensionPoint qualifiedName="org.rust.addSdkProvider"
                         interface="org.rust.ide.sdk.add.RsAddSdkProvider"
+                        dynamic="true"/>
+        <extensionPoint qualifiedName="org.rust.editSdkProvider"
+                        interface="org.rust.ide.sdk.edit.RsEditSdkProvider"
                         dynamic="true"/>
     </extensionPoints>
 
